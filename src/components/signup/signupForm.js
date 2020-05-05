@@ -11,8 +11,14 @@ const validate = values => {
   if (!values['signup-email']) {
     errors['signup-email'] = 'Required';
   }
+  else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(values['signup-email'])) {
+    errors['signup-email'] = 'Pleaser enter valid email';
+  }
   if (!values['signup-pw']) {
     errors['signup-pw'] = 'Required';
+  }
+  else if (values['signup-pw'].length < 5) {
+    errors['signup-pw'] = 'Password must be longer than 5';
   }
   return errors;
 }
@@ -21,14 +27,11 @@ const firebaseSignup = (email, pw) => {
   return firebase.auth().createUserWithEmailAndPassword(email, pw)
     .then((res) => {
       console.log('signed up!');
-      this.props.history.push('/profile');
-      // console.log(res.credential.toJSON());
     })
     .catch(error => {
       console.log('error!', error);
       let errorCode = error.code;
-      throw new SubmissionError({ ['signup-email']: ' ', ['signup-pw']: ' ', _error: 'Signup Failed!' });
-
+      throw new SubmissionError({ ['signup-email']: ' ', ['signup-pw']: ' ', _error: `Signup Failed! ${errorCode}` });
     })
 };
 
@@ -63,7 +66,8 @@ let SignupForm = ({ error, handleSubmit, submitting, valid }) => {
 
 SignupForm = reduxForm({
   form: 'signup',
-  validate
+  validate,
+  destroyOnUnmount: true,
 })(SignupForm)
 
 export default withRouter(SignupForm);

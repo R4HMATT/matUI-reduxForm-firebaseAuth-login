@@ -3,13 +3,16 @@ import { Grid, Button, FormHelperText } from '@material-ui/core';
 import { renderTextField } from '../renderMatUI';
 import { firebase } from '../../firebase-object';
 import lightGreen from '@material-ui/core/colors/lightGreen';
-import { reduxForm, Field, SubmissionError } from 'redux-form';
+import { reduxForm, Field, SubmissionError, clearSubmitErrors, clearAsyncError } from 'redux-form';
 import { withRouter } from 'react-router-dom';
 
 const validate = values => {
   let errors = {};
   if (!values['login-email']) {
     errors['login-email'] = 'Required';
+  }
+  else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(values['login-email'])) {
+    errors['login-email'] = 'Pleaser enter valid email';
   }
   if (!values['login-pw']) {
     errors['login-pw'] = 'Required';
@@ -19,19 +22,15 @@ const validate = values => {
 
 class LoginForm extends Component {
 
-
   firebaseLogin = (email, pw) => {
-    // console.log(firebase.app().name);
     return firebase.auth().signInWithEmailAndPassword(email, pw)
       .then((res) => {
         console.log('signed in!');
-        this.props.history.push('/profile');
-        // console.log(res.credential.toJSON());
       })
       .catch(error => {
         console.log('error!', error);
         let errorCode = error.code;
-        throw new SubmissionError({ ['login-email']: ' ', ['login-pw']: ' ', _error: 'Login Failed!' });
+        throw new SubmissionError({ _error: `Login Failed! error: ${errorCode}` });
 
       })
   };
@@ -49,7 +48,7 @@ class LoginForm extends Component {
         direction="column"
         justify="center"
         alignItems="center"
-        spacing={1}
+        spacing={2}
       >
         <Grid item>
           <Field name="login-email" component={renderTextField} label="Email" />
@@ -59,17 +58,16 @@ class LoginForm extends Component {
         </Grid>
         <Grid item><FormHelperText disabled={!error} error={true}>{error}</FormHelperText></Grid>
         <Grid item>
-          <Button onClick={handleSubmit(this.handleLogin)} type="submit" disabled={submitting} color={lightGreen[600]} variant="contained">Submit</Button>
+          <Button onClick={handleSubmit(this.handleLogin)} type="submit" disabled={submitting} variant="contained">Submit</Button>
         </Grid>
       </Grid>
-      // </Grid>
     )
   }
 }
 
 LoginForm = reduxForm({
   form: 'login',
-  validate
+  validate,
 })(LoginForm)
 
-export default withRouter(LoginForm);
+export default LoginForm;

@@ -9,7 +9,6 @@ const renderTextField = ({
   meta: { touched, invalid, error },
   ...custom
 }) => {
-  console.log(error);
   return (
     <TextField
       label={label}

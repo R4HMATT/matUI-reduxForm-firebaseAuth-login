@@ -1,12 +1,32 @@
-import React from 'react';
-import { Link, Redirect } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, Redirect, withRouter } from 'react-router-dom';
 import { Grid, Typography, Container } from '@material-ui/core';
 import { firebase } from '../../firebase-object';
 import SignupForm from './signupForm';
 
-let SignupPage = () => {
-  console.log(firebase.auth().currentUser);
-  return (firebase.auth().currentUser) ? <Redirect to="/profile" /> :
+let SignupPage = (props) => {
+
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    return firebase.auth().onAuthStateChanged(function (user) {
+      if (user) {
+        // User is signed in.
+        // firebase onauthstatechanged returns the unsubscribe funcntion
+        // so we return it, so useEffect will use the unsubscribe function
+        // as part of the component unmount clean up
+        setCheckingAuth(false);
+        props.history.replace('/profile');
+
+      } else {
+        // No user is signed in.
+        console.log('onauthstatechanged else');
+        setCheckingAuth(false);
+      }
+    });
+  }, []);
+
+  return checkingAuth ? null :
     (
       <Container>
         <Grid
@@ -40,4 +60,4 @@ let SignupPage = () => {
     )
 }
 
-export default SignupPage;
+export default withRouter(SignupPage);
